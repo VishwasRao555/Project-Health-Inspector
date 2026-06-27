@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ForgotPassword } from "./pages/ForgotPassword";
+import { History } from "./pages/History";
 import { Inspect } from "./pages/Inspect";
 import { Login } from "./pages/Login";
 import { ResetPassword } from "./pages/ResetPassword";
@@ -18,6 +19,14 @@ export function App() {
           element={
             <ProtectedRoute>
               <Inspect />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <History />
             </ProtectedRoute>
           }
         />

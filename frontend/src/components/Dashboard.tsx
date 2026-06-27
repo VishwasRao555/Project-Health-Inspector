@@ -1,12 +1,10 @@
 import { FileCode, GithubLogo, FileZip, Files } from "@phosphor-icons/react";
-import type { HealthReport, Severity } from "../types/contract";
+import { SEVERITIES, type HealthReport } from "../types/contract";
 import { ArchitectureGraph } from "./ArchitectureGraph";
 import { CategoryScores } from "./CategoryScores";
 import { IssueList } from "./IssueList";
 import { ScoreGauge } from "./ScoreGauge";
 import { SEVERITY_META } from "./brand";
-
-const SEVERITIES: Severity[] = ["critical", "high", "medium", "low"];
 
 export function Dashboard({ report }: { report: HealthReport }) {
   return (

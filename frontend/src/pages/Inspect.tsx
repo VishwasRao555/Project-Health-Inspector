@@ -1,7 +1,6 @@
-import { ArrowLeft, SignOut } from "@phosphor-icons/react";
+import { ArrowLeft } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
-import { useAuth } from "../auth/AuthContext";
-import { Brand } from "../components/brand";
+import { AppHeader } from "../components/AppHeader";
 import { Dashboard } from "../components/Dashboard";
 import { UploadPanel } from "../components/UploadPanel";
 import type { HealthReport } from "../types/contract";
@@ -13,7 +12,6 @@ function scrollToSection(el: HTMLElement | null) {
 }
 
 export function Inspect() {
-  const { user, logout } = useAuth();
   const [report, setReport] = useState<HealthReport | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -35,29 +33,13 @@ export function Inspect() {
 
   return (
     <div className="min-h-[100dvh]">
-      <header className="sticky top-0 z-30 border-b border-line/0 bg-transparent">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <button onClick={handleNewScan} className="transition hover:opacity-80" aria-label="Home">
-            <Brand />
+      <AppHeader onLogoClick={handleNewScan}>
+        {report && (
+          <button onClick={handleNewScan} className="btn-ghost !px-4 !py-2 text-xs">
+            <ArrowLeft size={14} /> New scan
           </button>
-          <div className="flex items-center gap-3">
-            {report && (
-              <button onClick={handleNewScan} className="btn-ghost !px-4 !py-2 text-xs">
-                <ArrowLeft size={14} /> New scan
-              </button>
-            )}
-            <span className="hidden text-xs text-gray-500 sm:inline">{user?.email}</span>
-            <button
-              onClick={logout}
-              className="grid h-9 w-9 place-items-center rounded-lg border border-line text-gray-400 transition hover:border-rose-500/40 hover:text-rose-300"
-              aria-label="Sign out"
-              title="Sign out"
-            >
-              <SignOut size={16} />
-            </button>
-          </div>
-        </div>
-      </header>
+        )}
+      </AppHeader>
 
       <main>
         <section

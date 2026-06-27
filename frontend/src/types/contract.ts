@@ -5,6 +5,8 @@
 
 export type Severity = "critical" | "high" | "medium" | "low";
 
+export const SEVERITIES: Severity[] = ["critical", "high", "medium", "low"];
+
 export type Category =
   | "Architecture"
   | "Code Quality"

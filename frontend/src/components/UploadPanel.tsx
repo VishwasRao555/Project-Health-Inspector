@@ -29,6 +29,11 @@ function isInsideIgnoredDir(rel: string): boolean {
   return rel.split("/").slice(0, -1).some((seg) => IGNORED_DIR_SEGMENTS.has(seg));
 }
 
+/** Yields to the browser for one paint so a just-flipped loading state is visible before heavy work starts. */
+function paintNow(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+}
+
 /** Bundles a flat list of dropped/selected folder files into a single in-browser zip. */
 async function zipFolder(files: File[]): Promise<{ zipFile: File; folderName: string; fileCount: number }> {
   const zip = new JSZip();
@@ -77,6 +82,7 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
     }
 
     setBundling(true);
+    await paintNow();
     try {
       const { zipFile, folderName, fileCount } = await zipFolder(incoming);
       if (fileCount === 0) {
@@ -111,6 +117,7 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
   async function runAnalysis() {
     setError(null);
     setBusy(true);
+    await paintNow();
     try {
       const report = file ? await api.analyzeZip(file) : await api.analyzeUrl(repoUrl.trim());
       onReport(report);
