@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-ink-950 text-gray-200 font-sans antialiased;
+  }
+  ::selection {
+    background: rgba(56, 189, 248, 0.3);
+  }
+}
+
+@layer components {
+  /* The glowing console card — the hero moment, echoing the Expo launch panel. */
+  .console-card {
+    @apply relative rounded-2xl border border-line bg-ink-850/80 backdrop-blur-xl;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 0 0 1px rgba(56, 189, 248, 0.18),
+      0 30px 80px -40px rgba(34, 211, 238, 0.55);
+  }
+  .field {
+    @apply w-full rounded-xl border border-line bg-ink-900 px-4 py-3 text-sm text-gray-100
+      placeholder:text-gray-500 outline-none transition focus:border-accent-cyan/60
+      focus:ring-2 focus:ring-accent-cyan/20;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3
+      text-sm font-semibold text-ink-950 transition active:translate-y-px
+      hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line
+      bg-transparent px-5 py-3 text-sm font-medium text-gray-300 transition
+      hover:border-accent-cyan/40 hover:text-white active:translate-y-px;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-ink-900/70 p-5;
+  }
+}
+
+/* Dotted-grid + glowing-horizon backdrop, fixed and non-interactive. */
+.backdrop-grid {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: #05060a;
+  background-image:
+    radial-gradient(circle at 50% 120%, rgba(56, 189, 248, 0.22), transparent 55%),
+    radial-gradient(circle at 50% 130%, rgba(59, 130, 246, 0.28), transparent 45%),
+    radial-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 26px 26px;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Fades the marquee edges to transparent so badges don't hard-cut at the bounds. */
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+}
+.marquee-track {
+  animation: marquee 26s linear infinite;
+}
+.marquee-mask:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/*
+ * Loading-boxes: two isometric cubes (3 clip-path faces each) that hop in
+ * alternation, recreating dribbble.com/shots/5533600-Loading-boxes at button scale.
+ */
+.loading-boxes {
+  --cube-w: 11px;
+  --cube-h: 13px;
+  position: relative;
+  display: inline-block;
+  width: calc(var(--cube-w) * 1.5);
+  height: var(--cube-h);
+}
+.loading-boxes__cube {
+  position: absolute;
+  width: var(--cube-w);
+  height: var(--cube-h);
+  top: 0;
+  animation: loadingBoxesHop 1.1s ease-in-out infinite;
+}
+.loading-boxes__cube--a {
+  left: 0;
+}
+.loading-boxes__cube--b {
+  left: calc(var(--cube-w) * 0.5);
+  animation-delay: 0.55s;
+}
+.loading-boxes__face {
+  position: absolute;
+  inset: 0;
+}
+.loading-boxes__face--top {
+  clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);
+  background: #9db8fb;
+}
+.loading-boxes__face--left {
+  clip-path: polygon(0% 25%, 50% 50%, 50% 100%, 0% 75%);
+  background: #3b82f6;
+}
+.loading-boxes__face--right {
+  clip-path: polygon(50% 50%, 100% 25%, 100% 75%, 50% 100%);
+  background: #1d4ed8;
+}
+.loading-boxes__shadow {
+  position: absolute;
+  bottom: -2px;
+  left: 8%;
+  width: 84%;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.18;
+  animation: loadingBoxesShadow 1.1s ease-in-out infinite;
+}
+
+@keyframes loadingBoxesHop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-42%);
+  }
+}
+@keyframes loadingBoxesShadow {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.18;
+  }
+  50% {
+    transform: scaleX(0.65);
+    opacity: 0.08;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up {
+    animation: none !important;
+  }
+  .marquee-track {
+    animation: none !important;
+  }
+  .loading-boxes__cube,
+  .loading-boxes__shadow {
+    animation: none !important;
+  }
+  .loading-boxes__cube--b {
+    transform: translateY(-42%);
+  }
+}
