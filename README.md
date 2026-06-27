@@ -6,8 +6,6 @@ dependencies, documentation, and maintainability — each scored, with root caus
 suggested fixes. **No AI is used for detection**; a clean seam is reserved for a future
 AI *explanation* layer.
 
-See [plan.md](plan.md) for the full design (the deep-module seams, the 10 analyzers, and
-the build sequence).
 
 ## Stack
 
