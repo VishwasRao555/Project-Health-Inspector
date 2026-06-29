@@ -14,7 +14,7 @@ AI *explanation* layer.
 - **Frontend** (`/frontend`): React + TypeScript + Tailwind, React Flow (architecture
   graph), Recharts (scores), react-dropzone (drag-and-drop upload).
 
-## Quick start
+## Installation
 
 ### 1. Backend
 

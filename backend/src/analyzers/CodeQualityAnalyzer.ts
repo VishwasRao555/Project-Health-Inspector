@@ -168,33 +168,54 @@ export class CodeQualityAnalyzer implements Analyzer {
   private detectDuplicates(ctx: AnalysisContext): Issue[] {
     const WINDOW = 6;
     const seen = new Map<string, { file: string; line: number }>();
-    const reported = new Set<string>();
     const issues: Issue[] = [];
 
     for (const sf of ctx.sourceFiles) {
       const rel = relPath(ctx, sf.getFilePath());
       const lines = sf.getFullText().split("\n").map(normalize);
+
+      // Collect every matching window for this file (in line order) before collapsing,
+      // since a single N-line duplicated region produces one matching window per shifted
+      // start position -- reporting each separately would flood the report with
+      // N-WINDOW+1 "duplicates" for what is really one contiguous duplicated block.
+      const matches: { line: number; prevFile: string; prevLine: number }[] = [];
       for (let i = 0; i + WINDOW <= lines.length; i++) {
         const block = lines.slice(i, i + WINDOW);
         if (block.filter((l) => l.length > 0).length < WINDOW - 1) continue; // skip mostly-blank
         const key = block.join("");
         const prev = seen.get(key);
-        if (prev && !reported.has(key)) {
-          reported.add(key);
-          issues.push(
-            issue(this, {
-              severity: "low",
-              issue: `Duplicate code block (${WINDOW} lines)`,
-              rootCause: `Identical block also appears at ${prev.file}:${prev.line}.`,
-              impact: "Changes must be made in multiple places; bugs get fixed inconsistently.",
-              solution: "Extract the shared logic into a reusable function or module.",
-              file: rel,
-              line: i + 1,
-            })
-          );
-        } else if (!prev) {
-          seen.set(key, { file: rel, line: i + 1 });
+        if (prev) matches.push({ line: i + 1, prevFile: prev.file, prevLine: prev.line });
+        else seen.set(key, { file: rel, line: i + 1 });
+      }
+
+      // Merge runs of matches where both this file's line and the matched original's
+      // line advance by exactly 1 each step -- that's one sliding duplicate region, not
+      // a separate duplicate per window.
+      let i = 0;
+      while (i < matches.length) {
+        let j = i;
+        while (
+          j + 1 < matches.length &&
+          matches[j + 1].line === matches[j].line + 1 &&
+          matches[j + 1].prevFile === matches[i].prevFile &&
+          matches[j + 1].prevLine === matches[j].prevLine + 1
+        ) {
+          j++;
         }
+        const first = matches[i];
+        const runLines = matches[j].line - first.line + WINDOW;
+        issues.push(
+          issue(this, {
+            severity: "low",
+            issue: `Duplicate code block (${runLines} lines)`,
+            rootCause: `Identical block also appears at ${first.prevFile}:${first.prevLine}.`,
+            impact: "Changes must be made in multiple places; bugs get fixed inconsistently.",
+            solution: "Extract the shared logic into a reusable function or module.",
+            file: rel,
+            line: first.line,
+          })
+        );
+        i = j + 1;
       }
     }
     return issues;

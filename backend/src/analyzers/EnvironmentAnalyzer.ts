@@ -104,7 +104,10 @@ export class EnvironmentAnalyzer implements Analyzer {
 
   private async collectReferencedEnvVars(ctx: AnalysisContext): Promise<Set<string>> {
     const refs = new Set<string>();
-    const re = /process\.env\.([A-Z0-9_]+)|process\.env\[["']([A-Z0-9_]+)["']\]|import\.meta\.env\.([A-Z0-9_]+)/g;
+    // Var names aren't restricted to UPPER_SNAKE_CASE at runtime -- match any case so a
+    // legitimately-referenced camelCase var (e.g. process.env.apiKey) isn't missed and
+    // then falsely reported as "unused".
+    const re = /process\.env\.([A-Za-z0-9_]+)|process\.env\[["']([A-Za-z0-9_]+)["']\]|import\.meta\.env\.([A-Za-z0-9_]+)/g;
     for (const rel of ctx.allFiles) {
       if (!/\.(ts|tsx|js|jsx|mjs|cjs)$/.test(rel)) continue;
       let content: string;

@@ -52,7 +52,12 @@ export class Inspector {
         }
       });
 
-      const enriched = await this.explanation.enrich(issues, ctx);
+      // Low-severity findings (leftover console.logs, minor nits, etc.) are real but
+      // numerous enough to bury what matters in a long report; drop them before scoring
+      // so neither the issue list nor the score is dominated by noise.
+      const significant = issues.filter((i) => i.severity !== "low");
+
+      const enriched = await this.explanation.enrich(significant, ctx);
       const { overall, categories, counts } = score(enriched);
       const architectureGraph = buildArchitectureGraph(ctx);
 

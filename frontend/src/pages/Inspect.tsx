@@ -35,7 +35,7 @@ export function Inspect() {
     <div className="min-h-[100dvh]">
       <AppHeader onLogoClick={handleNewScan}>
         {report && (
-          <button onClick={handleNewScan} className="btn-ghost !px-4 !py-2 text-xs">
+          <button onClick={handleNewScan} className="btn-nav">
             <ArrowLeft size={14} /> New scan
           </button>
         )}
@@ -44,7 +44,7 @@ export function Inspect() {
       <main>
         <section
           ref={heroRef}
-          className="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-6xl scroll-mt-16 items-center justify-center px-4 py-10 sm:px-6"
+          className="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-6xl scroll-mt-16 items-center justify-center px-4 py-6 sm:px-6"
         >
           <UploadPanel onReport={handleReport} />
         </section>

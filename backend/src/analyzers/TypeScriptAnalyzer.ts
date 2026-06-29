@@ -1,4 +1,4 @@
-import { SyntaxKind, VariableDeclarationKind } from "ts-morph";
+import { Node, SyntaxKind, VariableDeclarationKind } from "ts-morph";
 import type { AnalysisContext } from "../context/buildContext";
 import type { Issue } from "../types/contract";
 import { Analyzer, issue } from "./Analyzer";
@@ -35,13 +35,22 @@ export class TypeScriptAnalyzer implements Analyzer {
         anyKeywords.length;
 
       // Function parameters with no type annotation and no default = weak typing.
-      for (const fn of sf.getFunctions()) {
+      // Covers named declarations, arrow functions, function expressions, and methods --
+      // not just sf.getFunctions()'s top-level named declarations, which misses arrow
+      // functions, the dominant style in modern TS/React code.
+      const fnLikes = [
+        ...sf.getFunctions(),
+        ...sf.getDescendantsOfKind(SyntaxKind.ArrowFunction),
+        ...sf.getDescendantsOfKind(SyntaxKind.FunctionExpression),
+        ...sf.getDescendantsOfKind(SyntaxKind.MethodDeclaration),
+      ];
+      for (const fn of fnLikes) {
         for (const param of fn.getParameters()) {
           if (!param.getTypeNode() && !param.hasInitializer() && !param.isRestParameter()) {
             issues.push(
               issue(this, {
                 severity: "low",
-                issue: `Untyped parameter "${param.getName()}" in ${fn.getName() ?? "function"}`,
+                issue: `Untyped parameter "${param.getName()}" in ${nameOf(fn)}`,
                 rootCause: "Parameter has no type annotation, so it falls back to implicit any.",
                 impact: "Loses type-safety guarantees and editor assistance.",
                 solution: "Add an explicit parameter type.",
@@ -53,7 +62,8 @@ export class TypeScriptAnalyzer implements Analyzer {
         }
       }
 
-      // Suppressed type checking: @ts-ignore / @ts-nocheck / @ts-expect-error.
+      // Suppressed type checking via a ts-ignore/ts-nocheck/ts-expect-error directive.
+      // (Written without the leading "@" here so this very comment doesn't match below.)
       const text = sf.getFullText();
       const lines = text.split("\n");
       lines.forEach((line, idx) => {
@@ -73,8 +83,10 @@ export class TypeScriptAnalyzer implements Analyzer {
         }
       });
 
-      // `var` usage instead of block-scoped let/const.
-      for (const decl of sf.getVariableStatements()) {
+      // `var` usage instead of block-scoped let/const. Scans all descendants, not just
+      // sf.getVariableStatements()'s top-level statements -- otherwise `var` declared
+      // inside any function/block body (the common case) is invisible.
+      for (const decl of sf.getDescendantsOfKind(SyntaxKind.VariableStatement)) {
         if (decl.getDeclarationKind() === VariableDeclarationKind.Var) {
           issues.push(
             issue(this, {
@@ -110,4 +122,13 @@ export class TypeScriptAnalyzer implements Analyzer {
 
     return issues;
   }
+}
+
+/** Best-effort display name: declared functions/methods have one; arrow functions and
+ * function expressions don't, so fall back to a generic label rather than erroring. */
+function nameOf(fn: Node): string {
+  if (Node.isFunctionDeclaration(fn) || Node.isMethodDeclaration(fn)) {
+    return fn.getName() ?? "function";
+  }
+  return "function";
 }

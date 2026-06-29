@@ -37,8 +37,8 @@ const TRACK = [...TOOLS, ...TOOLS];
 /** Horizontally scrolling strip of the analyzers running under the hood. */
 export function ToolMarquee() {
   return (
-    <div className="mt-10 animate-fade-up">
-      <p className="mb-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+    <div className="mt-6 animate-fade-up">
+      <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
         10 analyzers inspecting your project
       </p>
       <div className="marquee-mask relative overflow-hidden">

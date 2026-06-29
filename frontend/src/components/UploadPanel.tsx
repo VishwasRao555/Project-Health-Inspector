@@ -1,54 +1,15 @@
-import { FileZip, FolderSimple, GithubLogo, Rocket, Sparkle, UploadSimple, X } from "@phosphor-icons/react";
-import JSZip from "jszip";
+import { GithubLogo, Rocket, Sparkle } from "@phosphor-icons/react";
 import { useCallback, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { ApiError, api } from "../api/client";
+import { MAX_UPLOAD_BYTES, paintNow, zipFolder } from "../lib/folderUpload";
 import type { HealthReport } from "../types/contract";
 import { LoadingBoxes } from "./LoadingBoxes";
+import { ProjectPicker } from "./ProjectPicker";
 import { ToolMarquee } from "./ToolMarquee";
 
 interface UploadPanelProps {
   onReport: (report: HealthReport) => void;
-}
-
-const MAX_BYTES = 50 * 1024 * 1024;
-
-// Mirrors the backend's buildContext.ts ignore list so a dropped folder doesn't drag
-// node_modules/.git along for the ride before it ever reaches the server.
-const IGNORED_DIR_SEGMENTS = new Set([
-  "node_modules", ".git", "dist", "build", "out", "coverage", ".next", ".turbo", ".cache", "vendor",
-]);
-
-/** Drag-and-drop (file-selector) and <input webkitdirectory> both stash the relative path differently. */
-function relativePathOf(file: File): string {
-  const f = file as File & { relativePath?: string; path?: string };
-  return (f.relativePath || f.path || file.webkitRelativePath || file.name).replace(/^\.?\//, "");
-}
-
-function isInsideIgnoredDir(rel: string): boolean {
-  return rel.split("/").slice(0, -1).some((seg) => IGNORED_DIR_SEGMENTS.has(seg));
-}
-
-/** Yields to the browser for one paint so a just-flipped loading state is visible before heavy work starts. */
-function paintNow(): Promise<void> {
-  return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-}
-
-/** Bundles a flat list of dropped/selected folder files into a single in-browser zip. */
-async function zipFolder(files: File[]): Promise<{ zipFile: File; folderName: string; fileCount: number }> {
-  const zip = new JSZip();
-  let folderName = "project";
-  let fileCount = 0;
-  for (const file of files) {
-    const rel = relativePathOf(file);
-    if (!rel || isInsideIgnoredDir(rel)) continue;
-    const top = rel.split("/")[0];
-    if (top) folderName = top;
-    zip.file(rel, file);
-    fileCount++;
-  }
-  const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
-  return { zipFile: new File([blob], `${folderName}.zip`, { type: "application/zip" }), folderName, fileCount };
 }
 
 /**
@@ -71,7 +32,7 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
 
     const singleZip = incoming.length === 1 && /\.zip$/i.test(incoming[0].name);
     if (singleZip) {
-      if (incoming[0].size > MAX_BYTES) {
+      if (incoming[0].size > MAX_UPLOAD_BYTES) {
         setError("That .zip is over the 50 MB limit.");
         return;
       }
@@ -89,7 +50,7 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
         setError("That folder has no files we can analyze.");
         return;
       }
-      if (zipFile.size > MAX_BYTES) {
+      if (zipFile.size > MAX_UPLOAD_BYTES) {
         setError("That folder is over the 50 MB limit once compressed.");
         return;
       }
@@ -132,23 +93,20 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
 
   return (
     <div className="mx-auto w-full max-w-xl">
-      <div className="mb-7 flex flex-col items-center text-center animate-fade-up">
-        <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-white px-3.5 py-1.5 text-xs font-medium text-slate-500 shadow-sm">
-          <Sparkle size={13} weight="fill" className="text-accent" />
-          Now reading folders, not just zips
-        </span>
-        <h1 className="font-display text-5xl uppercase leading-[0.95] tracking-tight text-slate-900 sm:text-6xl">
-          Ship code you
-          <span className="block text-accent">can stand behind.</span>
+      <div className="mb-4 flex flex-col items-center text-center animate-fade-up">
+        
+        <h1 className="font-display text-4xl uppercase leading-[0.95] tracking-tight text-slate-900 sm:text-5xl">
+          YOUR CODE DESERVES
+          <span className="block text-accent">A SECOND OPINION.</span>
         </h1>
-        <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-slate-500">
+        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-500">
           Point us at a GitHub repository, or drop a project folder straight from your
           machine. Ten analyzers comb through architecture, security, and quality —
           right down to typos — and score it without mercy.
         </p>
       </div>
 
-      <div className="console-card animate-fade-up p-5 sm:p-6">
+      <div className="console-card animate-fade-up p-4 sm:p-5">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
           Inspect your project directly
         </p>
@@ -175,81 +133,26 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
           />
         </div>
 
-        <div className="my-4 flex items-center gap-3 text-xs text-slate-400">
+        <div className="my-3 flex items-center gap-3 text-xs text-slate-400">
           <span className="h-px flex-1 bg-line" />
           OR
           <span className="h-px flex-1 bg-line" />
         </div>
 
-        {/* Drag-and-drop a .zip or a whole folder */}
-        {file ? (
-          <div className="flex items-center justify-between rounded-xl border border-accent/30 bg-accent/5 px-4 py-3">
-            <span className="flex min-w-0 items-center gap-3 text-sm text-slate-800">
-              {folderInfo ? (
-                <FolderSimple size={20} className="shrink-0 text-accent" />
-              ) : (
-                <FileZip size={20} className="shrink-0 text-accent" />
-              )}
-              <span className="truncate">{folderInfo ? folderInfo.name : file.name}</span>
-              <span className="shrink-0 text-xs text-slate-400">
-                {folderInfo ? `${folderInfo.fileCount} files` : `${(file.size / 1024 / 1024).toFixed(1)} MB`}
-              </span>
-            </span>
-            <button
-              onClick={clearFile}
-              disabled={busy}
-              className="shrink-0 text-slate-400 hover:text-rose-500"
-              aria-label="Remove"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        ) : (
-          <>
-            <div
-              {...getRootProps()}
-              className={`group flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-4 py-7 text-center transition ${
-                isDragActive
-                  ? "border-accent bg-accent/10"
-                  : "border-line bg-slate-50/60 hover:border-accent/50 hover:bg-accent/5"
-              }`}
-            >
-              <input {...getInputProps()} />
-              <UploadSimple
-                size={26}
-                className={`mb-2 transition ${isDragActive ? "text-accent" : "text-slate-400 group-hover:text-accent"}`}
-              />
-              <p className="text-sm font-medium text-slate-700">
-                {bundling ? "Reading folder…" : isDragActive ? "Drop it here" : "Drag & drop a project folder or .zip"}
-              </p>
-              <p className="mt-1 text-xs text-slate-400">or click to browse · max 50 MB</p>
-            </div>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                folderInputRef.current?.click();
-              }}
-              className="mx-auto mt-3 block text-xs text-slate-400 underline-offset-2 transition hover:text-accent hover:underline"
-            >
-              or choose a folder from your computer
-            </button>
-            <input
-              ref={folderInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              {...({ webkitdirectory: "true", directory: "" } as Record<string, string>)}
-              onChange={async (e) => {
-                const picked = Array.from(e.target.files ?? []);
-                e.target.value = "";
-                if (picked.length > 0) await acceptFiles(picked);
-              }}
-            />
-          </>
-        )}
+        <ProjectPicker
+          file={file}
+          folderInfo={folderInfo}
+          bundling={bundling}
+          isDragActive={isDragActive}
+          busy={busy}
+          getRootProps={getRootProps}
+          getInputProps={getInputProps}
+          folderInputRef={folderInputRef}
+          onClear={clearFile}
+          onFolderPicked={acceptFiles}
+        />
 
-        <button onClick={runAnalysis} disabled={!canRun} className="btn-primary mt-5 w-full">
+        <button onClick={runAnalysis} disabled={!canRun} className="btn-primary mt-4 w-full">
           {bundling ? "Reading folder…" : busy ? "Analyzing…" : "Launch inspection"}
           {busy || bundling ? <LoadingBoxes /> : <Rocket size={16} weight="fill" />}
         </button>
@@ -257,7 +160,7 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
 
       <ToolMarquee />
 
-      <p className="mt-6 text-center text-xs text-slate-400">
+      <p className="mt-4 text-center text-xs text-slate-400">
         Public GitHub repos are cloned shallowly and local uploads are deleted right
         after analysis.
       </p>

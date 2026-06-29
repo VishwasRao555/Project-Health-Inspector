@@ -59,13 +59,23 @@ export function analyzeRouter(
   });
 
   router.get("/reports", async (req, res) => {
-    res.json(await store.list(req.user!.id));
+    try {
+      res.json(await store.list(req.user!.id));
+    } catch (err) {
+      console.error("[reports] list failed:", err);
+      res.status(500).json({ error: "Failed to load reports." });
+    }
   });
 
   router.get("/reports/:id", async (req, res) => {
-    const report = await store.get(req.user!.id, req.params.id);
-    if (!report) return res.status(404).json({ error: "Report not found." });
-    res.json(report);
+    try {
+      const report = await store.get(req.user!.id, req.params.id);
+      if (!report) return res.status(404).json({ error: "Report not found." });
+      res.json(report);
+    } catch (err) {
+      console.error("[reports] get failed:", err);
+      res.status(500).json({ error: "Failed to load report." });
+    }
   });
 
   return router;

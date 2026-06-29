@@ -53,6 +53,13 @@
   .btn-ghost:hover {
     box-shadow: 0 10px 24px -12px rgba(37, 99, 235, 0.45);
   }
+  /* Solid (non-translucent) pill for buttons inside the sticky header -- needs to read
+   * clearly against page content scrolling underneath, unlike .btn-ghost's soft tint. */
+  .btn-nav {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line
+      bg-slate-50 px-4 py-2 text-xs font-medium text-slate-700 transition
+      hover:bg-slate-100 hover:text-slate-900 active:translate-y-px;
+  }
   .card {
     @apply rounded-2xl border border-line bg-white p-5;
     box-shadow:

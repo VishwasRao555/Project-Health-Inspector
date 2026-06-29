@@ -40,4 +40,14 @@ describe("Inspector (full pipeline)", () => {
     expect(report.issues.some((i) => i.category === "Documentation")).toBe(true);
     expect(report.issues.some((i) => i.category === "Dependencies")).toBe(true);
   });
+
+  it("drops low-severity issues so the report isn't dominated by noise", async () => {
+    const inspector = new Inspector();
+    const report = await inspector.inspect(new FixtureSource(fixtureDir), {
+      type: "zip",
+      ref: "sample.zip",
+    });
+    expect(report.issues.some((i) => i.severity === "low")).toBe(false);
+    expect(report.counts.low).toBe(0);
+  });
 });

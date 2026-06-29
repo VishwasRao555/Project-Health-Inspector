@@ -88,8 +88,14 @@ export class JwtAuthService implements AuthService {
     if (!record || record.used || record.expiresAt.getTime() < Date.now()) {
       throw new AuthError("This reset link is invalid or has expired.", 400);
     }
+    // Claim the token before touching the password: this is the atomic step, so if two
+    // requests race on the same token, only the winner proceeds and the loser fails here
+    // instead of both redeeming it and one password silently clobbering the other.
+    const claimed = await this.users.markResetUsed(record.id);
+    if (!claimed) {
+      throw new AuthError("This reset link is invalid or has expired.", 400);
+    }
     await this.users.updatePassword(record.userId, await bcrypt.hash(newPassword, 10));
-    await this.users.markResetUsed(record.id);
   }
 
   async verify(token: string): Promise<AuthUser> {

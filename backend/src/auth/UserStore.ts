@@ -1,4 +1,4 @@
-import type { RowDataPacket } from "mysql2";
+import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { getPool } from "../db/mysql";
 
 export interface UserRecord {
@@ -24,7 +24,12 @@ export interface UserStore {
 
   createReset(reset: ResetRecord): Promise<void>;
   findResetByTokenHash(tokenHash: string): Promise<ResetRecord | null>;
-  markResetUsed(id: string): Promise<void>;
+  /**
+   * Atomically transitions a reset record from unused -> used. Returns false (without
+   * effect) if it was already used, so two concurrent redemptions of the same token
+   * can't both succeed -- the loser must fail instead of also updating the password.
+   */
+  markResetUsed(id: string): Promise<boolean>;
 }
 
 // ---------------- In-memory adapter (tests + no-DB fallback) ----------------
@@ -54,9 +59,13 @@ export class InMemoryUserStore implements UserStore {
     for (const r of this.resets.values()) if (r.tokenHash === tokenHash) return r;
     return null;
   }
-  async markResetUsed(id: string): Promise<void> {
+  async markResetUsed(id: string): Promise<boolean> {
+    // No `await` between the read and the write, so this body runs to completion
+    // without yielding to another request's microtask -- the check-and-set is atomic.
     const r = this.resets.get(id);
-    if (r) r.used = true;
+    if (!r || r.used) return false;
+    r.used = true;
+    return true;
   }
 }
 
@@ -118,8 +127,14 @@ export class MySqlUserStore implements UserStore {
     };
   }
 
-  async markResetUsed(id: string): Promise<void> {
-    await getPool().query(`UPDATE password_resets SET used = 1 WHERE id = :id`, { id });
+  async markResetUsed(id: string): Promise<boolean> {
+    // Gate the UPDATE on `used = 0` so it's an atomic claim at the database level:
+    // only the first of two concurrent callers gets affectedRows > 0.
+    const [result] = await getPool().query<ResultSetHeader>(
+      `UPDATE password_resets SET used = 1 WHERE id = :id AND used = 0`,
+      { id }
+    );
+    return result.affectedRows > 0;
   }
 }
 

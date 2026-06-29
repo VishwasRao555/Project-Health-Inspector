@@ -61,14 +61,23 @@ const SECRET_RULES: SecretRule[] = [
 
 // SQL string concatenation with a variable, e.g. query("... WHERE id=" + id).
 const SQL_INJECTION = /\b(query|execute|raw)\s*\(\s*[`"'][^`"']*(SELECT|INSERT|UPDATE|DELETE)[^`"']*[`"']\s*\+/i;
-// Template-literal SQL with interpolation.
-const SQL_INJECTION_TEMPLATE = /(SELECT|INSERT|UPDATE|DELETE)[^`]*\$\{[^}]+\}/i;
+// Template-literal SQL with interpolation, passed straight into a query-style call.
+// Gating on the call (not just the keyword) avoids matching plain English sentences
+// that happen to contain "select"/"update" etc. inside an unrelated template literal
+// (e.g. a UI label like `Select report from ${name}`).
+const SQL_INJECTION_TEMPLATE = /\b(query|execute|raw)\s*\(\s*`[^`]*(SELECT|INSERT|UPDATE|DELETE)[^`]*\$\{[^}]+\}[^`]*`/i;
 // eval() / new Function(...) of dynamic input.
 const EVAL_USAGE = /\beval\s*\(|new\s+Function\s*\(/;
 // Shell commands built from interpolated/concatenated input.
 const COMMAND_INJECTION = /\b(exec|execSync|spawn)\s*\(\s*(`[^`]*\$\{|[`"'][^`"']*["'`]\s*\+)/;
 // Hardcoded insecure (non-TLS) URL, excluding localhost/loopback.
 const INSECURE_URL = /['"]http:\/\/(?!localhost|127\.0\.0\.1|0\.0\.0\.0)[^'"]+['"]/;
+
+// Rule-definition files (this analyzer and its siblings) inherently contain the literal
+// patterns/strings they detect — e.g. this very regex's source text matches EVAL_USAGE,
+// and the issue messages below contain the word "eval()". Self-scanning them produces
+// true-but-meaningless positives that drown out real findings elsewhere.
+const SELF_PATH = /(^|\/)src\/analyzers\//;
 
 /** Detects hardcoded secrets, weak JWT secrets, and SQL-injection-prone query building. */
 export class SecurityAnalyzer implements Analyzer {
@@ -81,6 +90,7 @@ export class SecurityAnalyzer implements Analyzer {
     for (const rel of ctx.allFiles) {
       if (isTestFile(rel)) continue;
       if (rel === ".env.example" || rel === ".env.sample") continue; // example files are expected
+      if (SELF_PATH.test(rel)) continue;
       if (!SCAN_EXTENSIONS.has(path.extname(rel)) && !rel.endsWith(".env")) continue;
 
       let content: string;

@@ -16,10 +16,17 @@ export class DeadCodeAnalyzer implements Analyzer {
     const issues: Issue[] = [];
     const importedFiles = new Set<string>();
 
-    // Build set of files that are the target of some import.
+    // Build set of files that are the target of some import OR re-export. Re-exports
+    // (`export ... from "./x"`, common in barrel index.ts files) are a separate AST node
+    // from import declarations -- without this, a file only ever reached through a
+    // barrel was falsely flagged as unused.
     for (const sf of ctx.sourceFiles) {
       for (const imp of sf.getImportDeclarations()) {
         const target = imp.getModuleSpecifierSourceFile();
+        if (target) importedFiles.add(target.getFilePath());
+      }
+      for (const exp of sf.getExportDeclarations()) {
+        const target = exp.getModuleSpecifierSourceFile();
         if (target) importedFiles.add(target.getFilePath());
       }
     }
@@ -59,7 +66,9 @@ export class DeadCodeAnalyzer implements Analyzer {
       }
 
       // Unimported, non-entry source files (heuristic: not imported and not an entry name).
-      const isEntry = /(^|\/)(index|main|app|server|setup|vite\.config|next\.config)\.(ts|tsx)$/i.test(rel);
+      // Includes "init"/"cli" for standalone scripts invoked directly via an npm script
+      // (e.g. `db/init.ts` run as `npm run db:init`) rather than imported by other code.
+      const isEntry = /(^|\/)(index|main|app|server|setup|init|cli|vite\.config|next\.config)\.(ts|tsx)$/i.test(rel);
       if (!isEntry && !importedFiles.has(sf.getFilePath()) && sf.getStatements().length > 0) {
         issues.push(
           issue(this, {

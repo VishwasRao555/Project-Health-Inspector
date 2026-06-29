@@ -4,6 +4,23 @@ import os from "os";
 import path from "path";
 import type { RepoHandle, RepositorySource } from "./RepositorySource";
 
+/** Decompressed-size cap, independent of the (compressed) upload size limit -- without
+ * this, a small highly-compressible "zip bomb" can expand to many GB on disk. */
+export const MAX_DECOMPRESSED_BYTES = 500 * 1024 * 1024; // 500 MB
+
+/** Pure so the cap can be exercised in tests without constructing an actual zip bomb. */
+export function assertWithinDecompressedLimit(
+  entrySizes: number[],
+  maxBytes: number = MAX_DECOMPRESSED_BYTES
+): void {
+  const total = entrySizes.reduce((sum, n) => sum + n, 0);
+  if (total > maxBytes) {
+    throw new Error(
+      `Zip expands to ${(total / 1024 / 1024).toFixed(0)} MB, over the ${(maxBytes / 1024 / 1024).toFixed(0)} MB decompressed limit.`
+    );
+  }
+}
+
 /** Materializes an uploaded ZIP buffer by extracting it into an OS temp dir. */
 export class ZipUploadSource implements RepositorySource {
   constructor(private readonly buffer: Buffer) {}
@@ -12,8 +29,11 @@ export class ZipUploadSource implements RepositorySource {
     const rootDir = await fs.mkdtemp(path.join(os.tmpdir(), "phi-zip-"));
     try {
       const zip = new AdmZip(this.buffer);
-      // extractAllTo is synchronous; guard against zip-slip by validating entry paths.
-      for (const entry of zip.getEntries()) {
+      const entries = zip.getEntries();
+      // extractAllTo is synchronous; guard against zip-slip and zip-bomb expansion
+      // before touching disk.
+      assertWithinDecompressedLimit(entries.map((e) => e.header.size));
+      for (const entry of entries) {
         const target = path.join(rootDir, entry.entryName);
         const resolved = path.resolve(target);
         if (!resolved.startsWith(path.resolve(rootDir))) {

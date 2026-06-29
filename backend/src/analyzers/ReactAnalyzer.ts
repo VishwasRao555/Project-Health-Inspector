@@ -11,6 +11,7 @@ export class ReactAnalyzer implements Analyzer {
 
   async analyze(ctx: AnalysisContext): Promise<Issue[]> {
     const issues: Issue[] = [];
+    const projectFiles = new Set(ctx.sourceFiles.map((sf) => sf.getFilePath()));
 
     for (const sf of ctx.sourceFiles) {
       const rel = relPath(ctx, sf.getFilePath());
@@ -38,14 +39,18 @@ export class ReactAnalyzer implements Analyzer {
         );
       }
 
-      // Prop drilling heuristic: component function with too many props.
+      // Prop drilling heuristic: component function with too many props. Restricted to
+      // functions that actually construct JSX -- a .tsx file commonly also holds plain
+      // helpers (string formatters, DOM callbacks, useCallback handlers) whose first
+      // parameter has nothing to do with "props".
       for (const fn of [...sf.getFunctions(), ...sf.getDescendantsOfKind(SyntaxKind.ArrowFunction)]) {
+        if (!constructsJsx(fn)) continue;
         const first = fn.getParameters()[0];
         if (!first) continue;
         const typeNode = first.getTypeNode();
         if (!typeNode) continue;
-        // Count members on inline object type or referenced interface.
-        const memberCount = countTypeMembers(typeNode);
+        // Count members on inline object type or a project-defined interface/type alias.
+        const memberCount = countTypeMembers(typeNode, projectFiles);
         if (memberCount > ctx.config.maxComponentProps) {
           issues.push(
             issue(this, {
@@ -120,16 +125,38 @@ export class ReactAnalyzer implements Analyzer {
   }
 }
 
-function countTypeMembers(typeNode: Node): number {
+function countTypeMembers(typeNode: Node, projectFiles: Set<string>): number {
+  // Inline object type literal: `(props: { a: string; b: string }) => ...`
   if (Node.isTypeLiteral(typeNode)) return typeNode.getMembers().length;
-  if (Node.isTypeReference(typeNode)) {
-    // Best-effort: look up an interface declaration with the same name in the project.
-    const name = typeNode.getTypeName().getText();
-    const sf = typeNode.getSourceFile();
-    const iface = sf.getInterface(name);
-    if (iface) return iface.getProperties().length;
+
+  // Reference to an interface/type alias, resolved via the type checker so it works
+  // across files (the normal case once props move to their own file) -- but only counted
+  // if the declaration lives in the project being analyzed. Without that guard, a
+  // primitive (`string`), DOM type (`File`, `HTMLElement`), array, or string-literal union
+  // resolves to its ambient lib.d.ts type and `.getProperties()` returns every inherited
+  // prototype member (e.g. all of String.prototype) -- a large number that has nothing to
+  // do with "props".
+  const decl = typeNode
+    .getType()
+    .getSymbol()
+    ?.getDeclarations()
+    .find((d) => projectFiles.has(d.getSourceFile().getFilePath()));
+  if (Node.isInterfaceDeclaration(decl)) return decl.getProperties().length;
+  if (Node.isTypeAliasDeclaration(decl)) {
+    const aliased = decl.getTypeNode();
+    if (aliased && Node.isTypeLiteral(aliased)) return aliased.getMembers().length;
   }
   return 0;
+}
+
+/** True if a function/arrow-function's body constructs JSX anywhere -- the cheap, robust
+ * signal that it's an actual component rather than a helper that merely lives in a .tsx file. */
+function constructsJsx(fn: Node): boolean {
+  return (
+    fn.getDescendantsOfKind(SyntaxKind.JsxElement).length > 0 ||
+    fn.getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement).length > 0 ||
+    fn.getDescendantsOfKind(SyntaxKind.JsxFragment).length > 0
+  );
 }
 
 function findReturnedJsx(fn: Node): Node | undefined {
@@ -176,13 +203,24 @@ function keyExpressionText(jsx: Node): string | undefined {
 function jsxDepth(node: Node): number {
   let max = 0;
   for (const desc of node.getChildren()) {
-    if (Node.isJsxElement(desc) || Node.isJsxSelfClosingElement(desc)) {
-      max = Math.max(max, jsxDepth(desc));
-    } else {
-      for (const gc of desc.getChildrenOfKind(SyntaxKind.JsxElement)) {
-        max = Math.max(max, jsxDepth(gc));
-      }
-    }
+    max = Math.max(max, jsxChildDepth(desc));
   }
   return 1 + max;
+}
+
+/**
+ * Looks arbitrarily deep through non-JSX syntax (expression containers, `&&`/ternary
+ * conditions, `.map()` callback bodies) to find nested JSX, then switches to jsxDepth's
+ * depth-counting once found. A direct-children-only search misses JSX reached through
+ * conditional rendering or list rendering -- both extremely common React patterns.
+ */
+function jsxChildDepth(node: Node): number {
+  if (Node.isJsxElement(node) || Node.isJsxSelfClosingElement(node)) {
+    return jsxDepth(node);
+  }
+  let max = 0;
+  for (const child of node.getChildren()) {
+    max = Math.max(max, jsxChildDepth(child));
+  }
+  return max;
 }

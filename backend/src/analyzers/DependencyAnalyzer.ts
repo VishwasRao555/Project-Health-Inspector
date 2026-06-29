@@ -62,6 +62,21 @@ export class DependencyAnalyzer implements Analyzer {
         );
       }
 
+      // Fully unpinned -> any version including future majors, strictly worse than a
+      // pre-1.0 pin (which is at least bounded to the 0.x line).
+      if (typeof version === "string" && /^(\*|x|latest|)$/i.test(version.trim())) {
+        issues.push(
+          issue(this, {
+            severity: "medium",
+            issue: `Unpinned dependency "${name}" (${version || '""'})`,
+            rootCause: `"${name}" has no version constraint at all, so any published version -- including breaking future majors -- can be installed.`,
+            impact: "Builds are non-reproducible and can break without warning on a fresh install.",
+            solution: "Pin to a specific version or a caret/tilde range.",
+            file: "package.json",
+          })
+        );
+      }
+
       // Loose version range -> outdated-prone / non-reproducible.
       if (typeof version === "string" && /^[\^~]?0\./.test(version)) {
         issues.push(
@@ -82,16 +97,18 @@ export class DependencyAnalyzer implements Analyzer {
 
   private async collectImportedPackages(ctx: AnalysisContext): Promise<Set<string>> {
     const used = new Set<string>();
-    // From ts-morph import declarations.
+    // From ts-morph import declarations (resolved, handles ES `import` in .ts/.tsx).
     for (const sf of ctx.sourceFiles) {
       for (const imp of sf.getImportDeclarations()) {
         addPkg(used, imp.getModuleSpecifierValue());
       }
     }
-    // Regex fallback over JS files not parsed by ts-morph.
+    // Regex fallback for require()/dynamic import(), which ts-morph's import-declaration
+    // API doesn't see. Runs over .ts/.tsx too, not just untyped JS -- a require() call in
+    // a .ts file is just as invisible to getImportDeclarations() as it is in a .js file.
     const re = /(?:import\s[^'"]*from\s*|require\(\s*|import\(\s*)["']([^"']+)["']/g;
     for (const rel of ctx.allFiles) {
-      if (!/\.(js|jsx|mjs|cjs)$/.test(rel)) continue;
+      if (!/\.(ts|tsx|js|jsx|mjs|cjs)$/.test(rel)) continue;
       let content: string;
       try {
         content = await fs.readFile(path.join(ctx.rootDir, rel), "utf8");
