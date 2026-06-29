@@ -9,71 +9,114 @@
     height: 100%;
   }
   body {
-    @apply bg-ink-950 text-gray-200 font-sans antialiased;
+    @apply bg-ink-950 text-slate-600 font-sans antialiased;
   }
   ::selection {
-    background: rgba(56, 189, 248, 0.3);
+    background: rgba(37, 99, 235, 0.18);
   }
 }
 
 @layer components {
-  /* The glowing console card — the hero moment, echoing the Expo launch panel. */
+  /* The hero console card — a clean white floating panel (NeuroPay style). */
   .console-card {
-    @apply relative rounded-2xl border border-line bg-ink-850/80 backdrop-blur-xl;
+    @apply relative rounded-2xl border border-line bg-white;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.05),
-      0 0 0 1px rgba(56, 189, 248, 0.18),
-      0 30px 80px -40px rgba(34, 211, 238, 0.55);
+      0 1px 0 rgba(255, 255, 255, 0.9) inset,
+      0 2px 6px -2px rgba(15, 23, 42, 0.08),
+      0 32px 70px -38px rgba(37, 99, 235, 0.4);
   }
   .field {
-    @apply w-full rounded-xl border border-line bg-ink-900 px-4 py-3 text-sm text-gray-100
-      placeholder:text-gray-500 outline-none transition focus:border-accent-cyan/60
-      focus:ring-2 focus:ring-accent-cyan/20;
+    @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-sm text-slate-900
+      placeholder:text-slate-400 outline-none transition focus:border-accent/60
+      focus:ring-2 focus:ring-accent/15;
   }
-  /* Pill CTA with a glossy top highlight and a cyan contact-shadow underneath. */
+  /* Primary CTA — filled electric-blue pill with white text. */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3
-      text-sm font-semibold text-ink-950 transition active:translate-y-px
-      hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50;
-    background-image: linear-gradient(180deg, #fff 0%, #fff 55%, #eef2f7 100%);
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-3
+      text-sm font-semibold text-white transition active:translate-y-px
+      hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      0 14px 28px -12px rgba(34, 211, 238, 0.5);
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      0 14px 28px -12px rgba(37, 99, 235, 0.6);
   }
   .btn-primary:hover {
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      0 16px 32px -10px rgba(34, 211, 238, 0.65);
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      0 16px 32px -10px rgba(37, 99, 235, 0.72);
   }
-  /* Cyan-tinted pill for secondary actions — colored at rest, not just on hover. */
+  /* Soft blue-tinted pill for secondary actions — colored at rest. */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-accent-cyan/30
-      bg-accent-cyan/10 px-5 py-3 text-sm font-medium text-accent-cyan backdrop-blur-sm transition
-      hover:border-accent-cyan/60 hover:bg-accent-cyan/20 hover:text-white active:translate-y-px;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-accent/20
+      bg-accent/10 px-5 py-3 text-sm font-medium text-accent transition
+      hover:border-accent/40 hover:bg-accent/15 active:translate-y-px;
   }
   .btn-ghost:hover {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 10px 24px -12px rgba(56, 189, 248, 0.55);
+    box-shadow: 0 10px 24px -12px rgba(37, 99, 235, 0.45);
   }
   .card {
-    @apply rounded-2xl border border-line bg-ink-900/70 p-5;
+    @apply rounded-2xl border border-line bg-white p-5;
+    box-shadow:
+      0 1px 2px -1px rgba(15, 23, 42, 0.06),
+      0 20px 44px -32px rgba(15, 23, 42, 0.25);
   }
 }
 
-/* Dotted-grid + glowing-horizon backdrop, fixed and non-interactive. */
+/* Box-grid + soft blue-wash backdrop, fixed and non-interactive. */
 .backdrop-grid {
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-color: #05060a;
+  background-color: #eef1f8;
   background-image:
-    radial-gradient(circle at 50% 120%, rgba(56, 189, 248, 0.22), transparent 55%),
-    radial-gradient(circle at 50% 130%, rgba(59, 130, 246, 0.28), transparent 45%),
-    radial-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 26px 26px;
+    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.1), transparent 55%),
+    linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
+  background-size: 100% 100%, 56px 56px, 56px 56px;
+}
+
+/* ---- Report page: collapsible issue details + print-to-PDF ---- */
+.issue-details {
+  display: none;
+}
+.issue-details.open {
+  display: grid;
+}
+
+@media print {
+  /* Strip app chrome so the saved PDF is just the report sheet. */
+  .no-print {
+    display: none !important;
+  }
+  .backdrop-grid {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .report-sheet {
+    max-width: none;
+    padding: 0 !important;
+  }
+  .report-sheet .card {
+    box-shadow: none;
+    border-color: rgba(15, 23, 42, 0.12);
+    break-inside: avoid;
+  }
+  /* Only selected issues belong in the printed report. */
+  .report-sheet li.is-unselected {
+    display: none !important;
+  }
+  .report-sheet li {
+    background: transparent !important;
+  }
+  /* Expand every (selected) issue's details in the PDF. */
+  .issue-details {
+    display: grid !important;
+  }
+  .issue-details .detail {
+    break-inside: avoid;
+  }
 }
 
 @keyframes marquee {

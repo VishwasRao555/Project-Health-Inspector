@@ -1,5 +1,6 @@
-import { ArrowLeft, FileZip, GithubLogo } from "@phosphor-icons/react";
+import { ArrowLeft, FileText, FileZip, GithubLogo } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { ApiError, api } from "../api/client";
 import { AppHeader } from "../components/AppHeader";
 import { Dashboard } from "../components/Dashboard";
@@ -92,7 +93,7 @@ export function History() {
         )}
 
         {error && (
-          <div role="alert" className="mb-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+          <div role="alert" className="mb-6 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-700">
             {error}
           </div>
         )}
@@ -103,7 +104,7 @@ export function History() {
         {mode === "list" && (
           <div className="space-y-6 animate-fade-up">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h1 className="font-display text-xl font-semibold text-white">Scan history</h1>
+              <h1 className="font-display text-3xl uppercase tracking-tight text-slate-900">Scan history</h1>
               <button
                 onClick={openDiff}
                 disabled={selected.length !== 2 || busy}
@@ -118,11 +119,11 @@ export function History() {
                 <LoadingBoxes />
               </div>
             ) : reports.length === 0 ? (
-              <div className="card text-center text-sm text-gray-500">
+              <div className="card text-center text-sm text-slate-400">
                 No scans yet. Run your first analysis from the dashboard.
               </div>
             ) : (
-              <ul className="card divide-y divide-white/5">
+              <ul className="card divide-y divide-slate-100">
                 {reports.map((r) => (
                   <li key={r.id} className="flex flex-wrap items-center gap-4 py-4 first:pt-0 last:pb-0">
                     <input
@@ -140,8 +141,8 @@ export function History() {
                         <FileZip size={16} className="shrink-0 text-gray-500" />
                       )}
                       <div className="min-w-0">
-                        <p className="truncate font-mono text-sm text-gray-200">{r.source.ref}</p>
-                        <p className="text-xs text-gray-500">{new Date(r.createdAt).toLocaleString()}</p>
+                        <p className="truncate font-mono text-sm text-slate-800">{r.source.ref}</p>
+                        <p className="text-xs text-slate-400">{new Date(r.createdAt).toLocaleString()}</p>
                       </div>
                     </div>
 
@@ -160,9 +161,18 @@ export function History() {
                       {r.overallScore}
                     </span>
 
-                    <button onClick={() => openDetail(r.id)} className="btn-ghost !px-3 !py-1.5 text-xs">
-                      View
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        to={`/report/${r.id}`}
+                        className="btn-ghost !px-3 !py-1.5 text-xs"
+                        title="Generate report"
+                      >
+                        <FileText size={14} weight="bold" /> Report
+                      </Link>
+                      <button onClick={() => openDetail(r.id)} className="btn-ghost !px-3 !py-1.5 text-xs">
+                        View
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>

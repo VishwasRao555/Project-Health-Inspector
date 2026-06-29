@@ -133,15 +133,15 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
   return (
     <div className="mx-auto w-full max-w-xl">
       <div className="mb-7 flex flex-col items-center text-center animate-fade-up">
-        <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-ink-900/70 px-3.5 py-1.5 text-xs text-gray-400">
-          <Sparkle size={13} weight="fill" className="text-accent-cyan" />
+        <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-white px-3.5 py-1.5 text-xs font-medium text-slate-500 shadow-sm">
+          <Sparkle size={13} weight="fill" className="text-accent" />
           Now reading folders, not just zips
         </span>
-        <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl">
+        <h1 className="font-display text-5xl uppercase leading-[0.95] tracking-tight text-slate-900 sm:text-6xl">
           Ship code you
-          <span className="block text-gray-500">can stand behind.</span>
+          <span className="block text-accent">can stand behind.</span>
         </h1>
-        <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-gray-400">
+        <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-slate-500">
           Point us at a GitHub repository, or drop a project folder straight from your
           machine. Ten analyzers comb through architecture, security, and quality —
           right down to typos — and score it without mercy.
@@ -149,12 +149,12 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
       </div>
 
       <div className="console-card animate-fade-up p-5 sm:p-6">
-        <p className="mb-3 text-xs font-medium uppercase tracking-wider text-gray-500">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
           Inspect your project directly
         </p>
 
         {error && (
-          <div role="alert" className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+          <div role="alert" className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-700">
             {error}
           </div>
         )}
@@ -175,7 +175,7 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
           />
         </div>
 
-        <div className="my-4 flex items-center gap-3 text-xs text-gray-600">
+        <div className="my-4 flex items-center gap-3 text-xs text-slate-400">
           <span className="h-px flex-1 bg-line" />
           OR
           <span className="h-px flex-1 bg-line" />
@@ -183,22 +183,22 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
 
         {/* Drag-and-drop a .zip or a whole folder */}
         {file ? (
-          <div className="flex items-center justify-between rounded-xl border border-accent-cyan/40 bg-accent-cyan/5 px-4 py-3">
-            <span className="flex min-w-0 items-center gap-3 text-sm text-gray-200">
+          <div className="flex items-center justify-between rounded-xl border border-accent/30 bg-accent/5 px-4 py-3">
+            <span className="flex min-w-0 items-center gap-3 text-sm text-slate-800">
               {folderInfo ? (
-                <FolderSimple size={20} className="shrink-0 text-accent-cyan" />
+                <FolderSimple size={20} className="shrink-0 text-accent" />
               ) : (
-                <FileZip size={20} className="shrink-0 text-accent-cyan" />
+                <FileZip size={20} className="shrink-0 text-accent" />
               )}
               <span className="truncate">{folderInfo ? folderInfo.name : file.name}</span>
-              <span className="shrink-0 text-xs text-gray-500">
+              <span className="shrink-0 text-xs text-slate-400">
                 {folderInfo ? `${folderInfo.fileCount} files` : `${(file.size / 1024 / 1024).toFixed(1)} MB`}
               </span>
             </span>
             <button
               onClick={clearFile}
               disabled={busy}
-              className="shrink-0 text-gray-500 hover:text-rose-300"
+              className="shrink-0 text-slate-400 hover:text-rose-500"
               aria-label="Remove"
             >
               <X size={18} />
@@ -210,19 +210,19 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
               {...getRootProps()}
               className={`group flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-4 py-7 text-center transition ${
                 isDragActive
-                  ? "border-accent-cyan bg-accent-cyan/10"
-                  : "border-line bg-ink-900/60 hover:border-accent-cyan/50 hover:bg-ink-800/60"
+                  ? "border-accent bg-accent/10"
+                  : "border-line bg-slate-50/60 hover:border-accent/50 hover:bg-accent/5"
               }`}
             >
               <input {...getInputProps()} />
               <UploadSimple
                 size={26}
-                className={`mb-2 transition ${isDragActive ? "text-accent-cyan" : "text-gray-500 group-hover:text-accent-cyan"}`}
+                className={`mb-2 transition ${isDragActive ? "text-accent" : "text-slate-400 group-hover:text-accent"}`}
               />
-              <p className="text-sm font-medium text-gray-300">
+              <p className="text-sm font-medium text-slate-700">
                 {bundling ? "Reading folder…" : isDragActive ? "Drop it here" : "Drag & drop a project folder or .zip"}
               </p>
-              <p className="mt-1 text-xs text-gray-500">or click to browse · max 50 MB</p>
+              <p className="mt-1 text-xs text-slate-400">or click to browse · max 50 MB</p>
             </div>
             <button
               type="button"
@@ -230,7 +230,7 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
                 e.stopPropagation();
                 folderInputRef.current?.click();
               }}
-              className="mx-auto mt-3 block text-xs text-gray-500 underline-offset-2 transition hover:text-accent-cyan hover:underline"
+              className="mx-auto mt-3 block text-xs text-slate-400 underline-offset-2 transition hover:text-accent hover:underline"
             >
               or choose a folder from your computer
             </button>
@@ -257,7 +257,7 @@ export function UploadPanel({ onReport }: UploadPanelProps) {
 
       <ToolMarquee />
 
-      <p className="mt-6 text-center text-xs text-gray-600">
+      <p className="mt-6 text-center text-xs text-slate-400">
         Public GitHub repos are cloned shallowly and local uploads are deleted right
         after analysis.
       </p>

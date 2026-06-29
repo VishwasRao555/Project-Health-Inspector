@@ -4,6 +4,7 @@ import { ForgotPassword } from "./pages/ForgotPassword";
 import { History } from "./pages/History";
 import { Inspect } from "./pages/Inspect";
 import { Login } from "./pages/Login";
+import { Report } from "./pages/Report";
 import { ResetPassword } from "./pages/ResetPassword";
 
 export function App() {
@@ -27,6 +28,14 @@ export function App() {
           element={
             <ProtectedRoute>
               <History />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/report/:id"
+          element={
+            <ProtectedRoute>
+              <Report />
             </ProtectedRoute>
           }
         />

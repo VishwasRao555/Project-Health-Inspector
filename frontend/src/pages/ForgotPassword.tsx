@@ -29,7 +29,7 @@ export function ForgotPassword() {
       title="Reset your password"
       subtitle="Enter your email and we'll send you a link to choose a new password."
       footer={
-        <Link to="/login" className="inline-flex items-center gap-1.5 text-gray-400 hover:text-accent-cyan">
+        <Link to="/login" className="inline-flex items-center gap-1.5 text-slate-500 hover:text-accent">
           <ArrowLeft size={14} /> Back to sign in
         </Link>
       }
@@ -43,7 +43,7 @@ export function ForgotPassword() {
       ) : (
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="email" className="block text-xs font-medium text-gray-400">
+            <label htmlFor="email" className="block text-xs font-medium text-slate-600">
               Email
             </label>
             <input

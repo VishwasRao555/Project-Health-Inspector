@@ -15,12 +15,12 @@ export function ScoreGauge({ score }: { score: number }) {
           endAngle={-270}
         >
           <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-          <RadialBar background={{ fill: "rgba(255,255,255,0.06)" }} dataKey="value" cornerRadius={20} />
+          <RadialBar background={{ fill: "rgba(15,23,42,0.07)" }} dataKey="value" cornerRadius={20} />
         </RadialBarChart>
       </ResponsiveContainer>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`font-display text-4xl font-bold ${scoreColor(score)}`}>{score}</span>
-        <span className="text-xs uppercase tracking-wider text-gray-500">Health</span>
+        <span className={`font-display text-5xl ${scoreColor(score)}`}>{score}</span>
+        <span className="text-xs uppercase tracking-wider text-slate-400">Health</span>
       </div>
     </div>
   );

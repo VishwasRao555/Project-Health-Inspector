@@ -35,7 +35,7 @@ export function ResetPassword() {
       title="Choose a new password"
       subtitle="Pick a strong password you haven't used before."
       footer={
-        <Link to="/login" className="text-gray-400 hover:text-accent-cyan">
+        <Link to="/login" className="text-slate-500 hover:text-accent">
           Back to sign in
         </Link>
       }
@@ -54,7 +54,7 @@ export function ResetPassword() {
       ) : (
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="password" className="block text-xs font-medium text-gray-400">
+            <label htmlFor="password" className="block text-xs font-medium text-slate-600">
               New password
             </label>
             <input
@@ -70,7 +70,7 @@ export function ResetPassword() {
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="confirm" className="block text-xs font-medium text-gray-400">
+            <label htmlFor="confirm" className="block text-xs font-medium text-slate-600">
               Confirm password
             </label>
             <input

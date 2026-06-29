@@ -4,26 +4,30 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Near-black blue-tinted surfaces (Expo-launch inspired, single dark theme).
+        // Light neutral scale (NeuroPay-style floating-card surfaces). Low index =
+        // page surface, high index = subtle tints. Names kept as `ink.*` so existing
+        // class usages keep working after the dark -> light flip.
         ink: {
-          950: "#05060a",
-          900: "#0a0c12",
-          850: "#0d0f17",
-          800: "#11141d",
-          700: "#171b26",
-          600: "#1f2430",
+          950: "#eef1f8", // page background base
+          900: "#ffffff", // card / field surface
+          850: "#ffffff", // console (hero) card surface
+          800: "#f1f4fb", // hover surface
+          700: "#e8edf8",
+          600: "#dfe6f4",
         },
-        line: "rgba(255,255,255,0.08)",
-        // Electric blue / cyan accent (the only accent on the page).
+        line: "rgba(15,23,42,0.08)",
+        // Electric blue — the single accent on the page. `cyan`/`glow` are aliased to
+        // blue so any legacy `accent-cyan` class still renders blue.
         accent: {
-          DEFAULT: "#3b82f6",
-          cyan: "#38bdf8",
-          glow: "#22d3ee",
+          DEFAULT: "#2563eb",
+          cyan: "#2563eb",
+          glow: "#3b82f6",
         },
       },
       fontFamily: {
-        display: ["'Space Grotesk'", "system-ui", "sans-serif"],
-        sans: ["Inter", "system-ui", "sans-serif"],
+        // Anton = heavy condensed display (DealSync editorial type); always uppercase.
+        display: ["Anton", "system-ui", "sans-serif"],
+        sans: ["'Plus Jakarta Sans'", "system-ui", "sans-serif"],
         mono: ["'JetBrains Mono'", "ui-monospace", "monospace"],
       },
       borderRadius: {
@@ -31,8 +35,9 @@ export default {
         "2xl": "1.25rem",
       },
       boxShadow: {
-        glow: "0 0 0 1px rgba(56,189,248,0.35), 0 0 40px -8px rgba(34,211,238,0.45)",
-        "glow-soft": "0 0 60px -20px rgba(56,189,248,0.5)",
+        // Soft, blue-tinted elevation for floating light cards.
+        glow: "0 1px 0 rgba(255,255,255,0.9) inset, 0 24px 60px -30px rgba(37,99,235,0.35)",
+        "glow-soft": "0 18px 50px -28px rgba(37,99,235,0.30)",
       },
       keyframes: {
         "fade-up": {

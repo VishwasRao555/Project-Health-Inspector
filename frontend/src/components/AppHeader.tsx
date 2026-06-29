@@ -31,10 +31,10 @@ export function AppHeader({ onLogoClick, children }: AppHeaderProps) {
           <Link to="/history" className="btn-ghost !px-4 !py-2 text-xs">
             <ClockCounterClockwise size={14} /> History
           </Link>
-          <span className="hidden text-xs text-gray-500 sm:inline">{user?.email}</span>
+          <span className="hidden text-xs text-slate-400 sm:inline">{user?.email}</span>
           <button
             onClick={logout}
-            className="grid h-9 w-9 place-items-center rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-300 backdrop-blur-sm transition hover:border-rose-500/60 hover:bg-rose-500/20 hover:text-rose-200 hover:shadow-[0_8px_20px_-12px_rgba(244,63,94,0.55)] active:translate-y-px"
+            className="grid h-9 w-9 place-items-center rounded-full border border-rose-500/25 bg-rose-500/10 text-rose-500 transition hover:border-rose-500/50 hover:bg-rose-500/15 hover:text-rose-600 hover:shadow-[0_8px_20px_-12px_rgba(244,63,94,0.5)] active:translate-y-px"
             aria-label="Sign out"
             title="Sign out"
           >

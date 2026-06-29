@@ -38,7 +38,7 @@ const TRACK = [...TOOLS, ...TOOLS];
 export function ToolMarquee() {
   return (
     <div className="mt-10 animate-fade-up">
-      <p className="mb-3 text-center text-[11px] font-medium uppercase tracking-wider text-gray-600">
+      <p className="mb-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">
         10 analyzers inspecting your project
       </p>
       <div className="marquee-mask relative overflow-hidden">
@@ -46,7 +46,7 @@ export function ToolMarquee() {
           {TRACK.map((tool, i) => (
             <span
               key={`${tool.name}-${i}`}
-              className="flex shrink-0 items-center gap-2 rounded-full border border-line bg-ink-900/60 px-4 py-2 text-xs text-gray-400"
+              className="flex shrink-0 items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-xs text-slate-500 shadow-sm"
             >
               <tool.icon size={14} weight="bold" />
               {tool.name}

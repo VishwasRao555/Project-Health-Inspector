@@ -23,8 +23,8 @@ export function IssueList({ issues }: { issues: Issue[] }) {
   return (
     <div className="card">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-white">
-          Findings <span className="text-gray-500">({issues.length})</span>
+        <h3 className="text-sm font-semibold text-slate-900">
+          Findings <span className="text-slate-400">({issues.length})</span>
         </h3>
         <div className="flex flex-wrap gap-1.5">
           <FilterChip active={filter === "all"} onClick={() => setFilter("all")} label={`All ${issues.length}`} />
@@ -41,11 +41,11 @@ export function IssueList({ issues }: { issues: Issue[] }) {
       </div>
 
       {visible.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line py-12 text-center text-sm text-gray-500">
+        <div className="rounded-xl border border-dashed border-line py-12 text-center text-sm text-slate-400">
           No issues in this category. Nicely done.
         </div>
       ) : (
-        <ul className="divide-y divide-white/5">
+        <ul className="divide-y divide-slate-100">
           {visible.map((issue, idx) => {
             const key = `${issue.file}-${issue.line}-${idx}`;
             const open = openKey === key;
@@ -58,17 +58,17 @@ export function IssueList({ issues }: { issues: Issue[] }) {
                 >
                   <CaretRight
                     size={14}
-                    className={`mt-1 shrink-0 text-gray-600 transition ${open ? "rotate-90" : ""}`}
+                    className={`mt-1 shrink-0 text-slate-400 transition ${open ? "rotate-90" : ""}`}
                   />
                   <span className={`mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium ${meta.bg} ${meta.text}`}>
                     {meta.label}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium text-gray-100">{issue.issue}</span>
-                    <span className="mt-0.5 block truncate font-mono text-xs text-gray-500">
+                    <span className="block text-sm font-medium text-slate-900">{issue.issue}</span>
+                    <span className="mt-0.5 block truncate font-mono text-xs text-slate-400">
                       {issue.file}
                       {issue.line ? `:${issue.line}` : ""}
-                      <span className="ml-2 text-gray-600">· {issue.category}</span>
+                      <span className="ml-2 text-slate-300">· {issue.category}</span>
                     </span>
                   </span>
                 </button>
@@ -105,8 +105,8 @@ function FilterChip({
       onClick={onClick}
       className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition ${
         active
-          ? "border-accent-cyan/50 bg-accent-cyan/10 text-white"
-          : "border-line text-gray-400 hover:text-gray-200"
+          ? "border-accent/40 bg-accent/10 font-medium text-accent"
+          : "border-line text-slate-500 hover:text-slate-900"
       }`}
     >
       {dot && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />}
@@ -117,9 +117,9 @@ function FilterChip({
 
 function Detail({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`rounded-xl border border-line p-3 ${accent ? "bg-accent-cyan/5" : "bg-ink-950/40"}`}>
-      <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-gray-500">{label}</p>
-      <p className="text-sm leading-relaxed text-gray-300">{value}</p>
+    <div className={`rounded-xl border border-line p-3 ${accent ? "bg-accent/5" : "bg-slate-50"}`}>
+      <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-slate-400">{label}</p>
+      <p className="text-sm leading-relaxed text-slate-600">{value}</p>
     </div>
   );
 }
